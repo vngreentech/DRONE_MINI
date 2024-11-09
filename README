@@ -1,0 +1,18 @@
+
+============================================================
+			VIETNAM DRONE DEVELOPMENT PROGRAM
+============================================================
+
+*** Linh Kiện/Components:
+
+- STM32F401CCU6
+- LCD OLED 0.91 Inch I2C
+- MPU6050
+- Logic level conversion module (5V <=> 3.3V)
+- DC/DC converter 1.2V - 37V, 3A
+- DC/DC converter 5v -> 3.3V
+- Motor 2217 - 1100KV
+- ESC 40A
+- Quadcopter kit F450
+- Propeller 1045
+- TX-RX: V24OL or Flysky i6
