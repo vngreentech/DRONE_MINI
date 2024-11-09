@@ -54,22 +54,22 @@ Channel_Typedef Receiver_Read_Value(void)
 
   if(CH1_PPM >= PPM_MIN && CH1_PPM <= PPM_MAX) //CH1
   {
-    Channel_Value.CH1 = map(CH1_PPM,PPM_MIN,PPM_MAX,SERVO_MIN,SERVO_MAX);
+    Channel_Value.CH1 = map(CH1_PPM,PPM_MIN,PPM_MAX,ZERO,CHANNEL_1_MAX);
   } 
 
   if(CH2_PPM >= PPM_MIN && CH2_PPM <= PPM_MAX) //CH2
   {
-    Channel_Value.CH2 = map(CH2_PPM,PPM_MIN,PPM_MAX,SERVO_MIN,SERVO_MAX);
+    Channel_Value.CH2 = map(CH2_PPM,PPM_MIN,PPM_MAX,ZERO,CHANNEL_2_MAX);
   } 
 
   if(CH3_PPM >= PPM_MIN && CH3_PPM <= PPM_MAX) //CH3
   {
-    Channel_Value.CH3 = map(CH3_PPM,PPM_MIN,PPM_MAX,SERVO_MIN,SERVO_MAX);
+    Channel_Value.CH3 = map(CH3_PPM,PPM_MIN,PPM_MAX,ZERO,CHANNEL_3_MAX);
   } 
 
   if(CH4_PPM >= PPM_MIN && CH4_PPM <= PPM_MAX) //CH4
   {
-    Channel_Value.CH4 = map(CH4_PPM,PPM_MIN,PPM_MAX,SERVO_MIN,SERVO_MAX);
+    Channel_Value.CH4 = map(CH4_PPM,PPM_MIN,PPM_MAX,ZERO,CHANNEL_4_MAX);
   } 
 
   return Channel_Value;

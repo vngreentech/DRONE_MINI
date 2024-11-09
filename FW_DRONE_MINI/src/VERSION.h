@@ -8,6 +8,35 @@
 
   /***********************************************
    * Project: Drone Mini    
+   * Version: DMV.0.2
+   * Date: 9,Nov,2024
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Update lib kalman filter
+   * Add folder PID
+   * Dev PID control: pitch and roll
+   * Release menu
+   * Fix day release in version DMV.0.1
+   * 
+   * - Fix ERR: 
+   * 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION      ("DMV.0.2")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE         ("9,Nov,2024")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
    * Version: DMV.0.1
    * Date: 9,Nov,2024
    * Dev: NhanNguyen
@@ -36,7 +65,7 @@
   #define FIRMWARE_VERSION      ("DMV.0.1")
   #endif /* FIRMWARE_VERSION */
   #ifndef RELEASES_DATE
-  #define RELEASES_DATE         ("11,Nov,2024")
+  #define RELEASES_DATE         ("9,Nov,2024")
   #endif /* RELEASES_DATE */
 
 /*==============================================*/

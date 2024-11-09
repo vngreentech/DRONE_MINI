@@ -10,7 +10,7 @@ void LCD_Init(void)
 
 void LCD_Menu_Main(void)
 {
-  u8g2.setFont( u8g2_font_helvB08_tr);
+  u8g2.setFont(u8g2_font_helvB08_tr);
   u8g2.clearBuffer();
   u8g2.setCursor(15, 10);
   u8g2.print("MADE IN VIETNAM");
@@ -18,12 +18,12 @@ void LCD_Menu_Main(void)
   u8g2.print("DEV BY NHANNGUYEN");  
   u8g2.sendBuffer(); 
   delay(3000);
-  u8g2.setFont( u8g2_font_helvB14_tr);
+  u8g2.setFont(u8g2_font_helvB14_tr);
 }
 
 void LCD_Menu_IMU(float PITCH, float ROLL, float YAW)
 {
-  u8g2.setFont( u8g2_font_helvB08_tr);
+  u8g2.setFont(u8g2_font_helvB08_tr);
   u8g2.clearBuffer();
 
   u8g2.setCursor(1, 8);
@@ -46,7 +46,7 @@ void LCD_Menu_IMU(float PITCH, float ROLL, float YAW)
 
 void LCD_Menu_PID(PID_typedef PID_Select, float PID_Value)
 {
-  u8g2.setFont( u8g2_font_helvB14_tr);
+  u8g2.setFont(u8g2_font_helvB14_tr);
   u8g2.clearBuffer();
   u8g2.setCursor(1, 22);
 
@@ -71,4 +71,22 @@ void LCD_Menu_PID(PID_typedef PID_Select, float PID_Value)
   
   u8g2.print(PID_Value,4);
   u8g2.sendBuffer(); 
+}
+
+void LCD_Menu_RESET(void)
+{
+  u8g2.setFont(u8g2_font_helvB14_tr);
+  u8g2.clearBuffer();
+  u8g2.setCursor(1, 22);
+  u8g2.print("RESET...!!!");
+  u8g2.sendBuffer();
+}
+
+void LCD_Menu_SAVE(void)
+{
+  u8g2.setFont(u8g2_font_helvB14_tr);
+  u8g2.clearBuffer();
+  u8g2.setCursor(1, 22);
+  u8g2.print("SAVE PID...");
+  u8g2.sendBuffer();
 }

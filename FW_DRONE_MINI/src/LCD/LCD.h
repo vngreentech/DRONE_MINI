@@ -8,5 +8,7 @@ void LCD_Init(void);
 void LCD_Menu_Main(void);
 void LCD_Menu_IMU(float PITCH, float ROLL, float YAW);
 void LCD_Menu_PID(PID_typedef PID_Select, float PID_Value);
+void LCD_Menu_RESET(void);
+void LCD_Menu_SAVE(void);
 
 #endif /*__LCD__*/

@@ -3,9 +3,11 @@
 #define __GLOBAL__
 
 #include <Arduino.h>
+#include <EEPROM.h>
 #include <Wire.h>
 #include <SPI.h>
 #include <Servo.h>
+#include "SimpleKalmanFilter.h"
 #include "U8g2lib.h"
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
@@ -35,6 +37,8 @@
 /*================================
         General Define
 ================================*/
+#define MILLIS (millis())
+#define MICROS (micros())
 #define SPEED_UART (115200UL)
 #define SPEED_I2C (400000UL)
 #define ZERO (0UL)
@@ -50,8 +54,20 @@
 /*================================
         Servo value define
 ================================*/
+#define MOTOR_1_MAX (180UL)
+#define MOTOR_2_MAX (180UL)
+#define MOTOR_3_MAX (180UL)
+#define MOTOR_4_MAX (180UL)
+
+#define CHANNEL_1_MAX (180UL)
+#define CHANNEL_2_MAX (180UL)
+#define CHANNEL_3_MAX (50UL)
+#define CHANNEL_4_MAX (180UL)
+
 #define SERVO_MIN (0UL)
 #define SERVO_MAX (180UL)
+
+#define PID_CONTROL_VALUE_LIMIT (20)
 /*==============================*/
 
 /*================================
