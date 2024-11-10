@@ -1,8 +1,6 @@
 
 #include "APPLICATION.h"
 
-#define TimeCalPID  (float(5.0)) //ms
-
 HardwareSerial Serial1(RXD_1, TXD_1);
 static IMU_DATA_TYPEDEF Read_IMU;
 static Channel_Typedef Read_Channel;
@@ -10,6 +8,7 @@ static PID_VALUE_typedef PID_Set_Value;
 
 PID_OBJECT_typedef PITCH_PID;
 PID_OBJECT_typedef ROLL_PID;
+PID_OBJECT_typedef YAW_PID;
 
 static uint32_t LastTimeLCD=0;
 static uint32_t LastTimePID=0;
@@ -35,19 +34,31 @@ static void Hardware_Driver_Init(void)
   pinMode(CHANNEL_4_PIN, INPUT);   
 }
 
-static void PID_SET_VALUE(float *PIDValue)
+static void PID_SET_VALUE(PID_typedef SelectPID, float *PIDValue)
 {
   if( digitalRead(BUTTON_PLUS_PIN)==false && digitalRead(BUTTON_MINUS_PIN)==true )
   {
-    delay(30);
-    *PIDValue = *PIDValue + 0.0001;
+    if(SelectPID==KP) *PIDValue = *PIDValue + 0.1;
+    else if(SelectPID==KI) *PIDValue = *PIDValue + 0.001;
+    else if(SelectPID==KD)  *PIDValue = *PIDValue + 0.01;
+    
+    else if(SelectPID==KP_YAW)  *PIDValue = *PIDValue + 0.1;
+    else if(SelectPID==KI_YAW) *PIDValue = *PIDValue + 0.001;
+    else *PIDValue = *PIDValue + 0.01;
+
     if(*PIDValue>=1000) *PIDValue=1000;
   }
 
   if( digitalRead(BUTTON_MINUS_PIN)==false && digitalRead(BUTTON_PLUS_PIN)==true )
   {
-    delay(30);
-    *PIDValue = *PIDValue - 0.0001;
+    if(SelectPID==KP) *PIDValue = *PIDValue - 0.1;
+    else if(SelectPID==KI) *PIDValue = *PIDValue - 0.001;
+    else if(SelectPID==KD)  *PIDValue = *PIDValue - 0.01;   
+
+    else if(SelectPID==KP_YAW) *PIDValue = *PIDValue - 0.1;
+    else if(SelectPID==KI_YAW) *PIDValue = *PIDValue - 0.001;
+    else *PIDValue = *PIDValue - 0.01;
+
     if(*PIDValue<=0) *PIDValue=0;
   }  
 }
@@ -69,12 +80,12 @@ static void Menu_Select(void)
   else if(STEP==1)
   {
     /* Select menu */
-    if( ((uint32_t)(MILLIS-LastTimeTick)<=200) && digitalRead(BUTTON_SELECT_PIN)==true && \
+    if( ((uint32_t)(MILLIS-LastTimeTick)<=500) && digitalRead(BUTTON_SELECT_PIN)==true && \
         digitalRead(BUTTON_PLUS_PIN)==true && digitalRead(BUTTON_MINUS_PIN)==true )
     {
       delay(200);
       Count_Menu+=1;
-      if(Count_Menu>3) Count_Menu=0;
+      if(Count_Menu>6) Count_Menu=0;
       STEP=0;
     }   
 
@@ -97,18 +108,32 @@ static void Menu_Select(void)
         RESET_MACHINE();
         LCD_Menu_IMU(Read_IMU.Pitch, Read_IMU.Roll, Read_IMU.Yaw);
         break;
-      case 1:
-        PID_SET_VALUE(&PID_Set_Value.KP);
+
+      case 1: /* KP */
+        PID_SET_VALUE(KP, &PID_Set_Value.KP);
         LCD_Menu_PID(KP, PID_Set_Value.KP);
         break;
-      case 2:
-        PID_SET_VALUE(&PID_Set_Value.KI);
+      case 2: /* KI */
+        PID_SET_VALUE(KI, &PID_Set_Value.KI);
         LCD_Menu_PID(KI, PID_Set_Value.KI);
         break;
-      case 3:
-        PID_SET_VALUE(&PID_Set_Value.KD);
+      case 3: /* KD */
+        PID_SET_VALUE(KD, &PID_Set_Value.KD);
         LCD_Menu_PID(KD, PID_Set_Value.KD);
-        break;                  
+        break;
+
+      case 4: /* KP_YAW */
+        PID_SET_VALUE(KP_YAW, &PID_Set_Value.KP_YAW);
+        LCD_Menu_PID(KP_YAW, PID_Set_Value.KP_YAW);
+        break;
+      case 5: /* KI_YAW */
+        PID_SET_VALUE(KI_YAW, &PID_Set_Value.KI_YAW);
+        LCD_Menu_PID(KI_YAW, PID_Set_Value.KI_YAW);
+        break;
+      case 6: /* KD_YAW */
+        PID_SET_VALUE(KD_YAW, &PID_Set_Value.KD_YAW);
+        LCD_Menu_PID(KD_YAW, PID_Set_Value.KD_YAW);
+        break;                    
       
       default:
         break;
@@ -155,6 +180,9 @@ static void RESET_MACHINE(void)
       PID_Set_Value.KP=0.2;
       PID_Set_Value.KI=0.05;
       PID_Set_Value.KD=0.1;
+      PID_Set_Value.KP_YAW=0.5;
+      PID_Set_Value.KI_YAW=0.05;
+      PID_Set_Value.KD_YAW=0.1;
       EEP_SAVE_PID_Value(&PID_Set_Value);  
       delay(3000);
 
@@ -172,22 +200,64 @@ static void RESET_MACHINE(void)
 
 static void PID_MOTOR_CONTROL(void)
 {
+  static MOTOR_Speed_typedef Speed_Motor;
+  static float PITCH_CONTROL = 0;
+  static float ROLL_CONTROL = 0;
+  
   PITCH_PID.ReadValue = Read_IMU.Pitch;
   ROLL_PID.ReadValue = Read_IMU.Roll;
+  YAW_PID.ReadValue = Read_IMU.Yaw;
 
   if( (uint32_t)(MILLIS-LastTimePID) >= TimeCalPID )
   {
+    PITCH_CONTROL = map(Read_Channel.CH2,ZERO,CHANNEL_2_MAX, PITCH_CONTROL_LIMIT, -PITCH_CONTROL_LIMIT);
+    ROLL_CONTROL = map(Read_Channel.CH1,ZERO,CHANNEL_1_MAX, ROLL_CONTROL_LIMIT, -ROLL_CONTROL_LIMIT);
+    YAW_PID.SetValue = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, -YAW_CONTROL_LIMIT, YAW_CONTROL_LIMIT);
+
     PID_CALCULATOR(&PITCH_PID);
     PID_CALCULATOR(&ROLL_PID);
+    PID_CAL_YAW(&YAW_PID);
 
     PITCH_PID.Output = constrain(PITCH_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
     ROLL_PID.Output = constrain(ROLL_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
+    YAW_PID.Output = constrain(YAW_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
 
-    MOTOR_Speed_typedef Speed_Motor;
-    Speed_Motor.Motor_1 = round(Read_Channel.CH3 + PITCH_PID.Output + ROLL_PID.Output);
-    Speed_Motor.Motor_2 = round(Read_Channel.CH3 + PITCH_PID.Output - ROLL_PID.Output);
+    /*PITCH control: OK*/
+    // Speed_Motor.Motor_1 = round(Read_Channel.CH3 + PITCH_PID.Output);
+    // Speed_Motor.Motor_2 = round(Read_Channel.CH3 + PITCH_PID.Output);
+    // Speed_Motor.Motor_3 = round(Read_Channel.CH3 - PITCH_PID.Output);
+    // Speed_Motor.Motor_4 = round(Read_Channel.CH3 - PITCH_PID.Output);
+
+    /* ROLL control: OK */
+    // Speed_Motor.Motor_1 = round(Read_Channel.CH3 - ROLL_PID.Output);
+    // Speed_Motor.Motor_2 = round(Read_Channel.CH3 + ROLL_PID.Output);
+    // Speed_Motor.Motor_3 = round(Read_Channel.CH3 + ROLL_PID.Output);
+    // Speed_Motor.Motor_4 = round(Read_Channel.CH3 - ROLL_PID.Output);
+
+    /* CH3 + PID control */
+    Speed_Motor.Motor_1 = round(Read_Channel.CH3 + PITCH_PID.Output - ROLL_PID.Output);
+    Speed_Motor.Motor_2 = round(Read_Channel.CH3 + PITCH_PID.Output + ROLL_PID.Output);
     Speed_Motor.Motor_3 = round(Read_Channel.CH3 - PITCH_PID.Output + ROLL_PID.Output);
     Speed_Motor.Motor_4 = round(Read_Channel.CH3 - PITCH_PID.Output - ROLL_PID.Output);
+
+    /* PITCH + ROLL */
+    Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 - ROLL_CONTROL + PITCH_CONTROL);
+    Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 + ROLL_CONTROL + PITCH_CONTROL);
+    Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + ROLL_CONTROL - PITCH_CONTROL);
+    Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - ROLL_CONTROL - PITCH_CONTROL);    
+
+    /* PITCH + ROLL + YAW */
+    #ifdef ENABLE_YAW_CONTROL
+    Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 + YAW_PID.Output);
+    Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 - YAW_PID.Output);
+    Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + YAW_PID.Output);
+    Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - YAW_PID.Output);    
+    #endif /* ENABLE_YAW_CONTROL */    
+    
+    Speed_Motor.Motor_1 = constrain(Speed_Motor.Motor_1,ZERO,SERVO_MAX);
+    Speed_Motor.Motor_2 = constrain(Speed_Motor.Motor_2,ZERO,SERVO_MAX);
+    Speed_Motor.Motor_3 = constrain(Speed_Motor.Motor_3,ZERO,SERVO_MAX);
+    Speed_Motor.Motor_4 = constrain(Speed_Motor.Motor_4,ZERO,SERVO_MAX);
 
     Motor_Control(MOTOR_1, Speed_Motor.Motor_1);
     Motor_Control(MOTOR_2, Speed_Motor.Motor_2);
@@ -196,6 +266,7 @@ static void PID_MOTOR_CONTROL(void)
 
     PITCH_PID.LastTimeCalPID=MILLIS;
     ROLL_PID.LastTimeCalPID=MILLIS;
+    YAW_PID.LastTimeCalPID=MILLIS;
     LastTimePID = MILLIS;
   }
 }
@@ -230,12 +301,22 @@ void APP_INIT(void)
   setupMPU();
 
   PID_Set_Value=EEP_Read_PID_Value();
+  // PID_Set_Value.KP=0.2;
+  // PID_Set_Value.KI=0.1;
+  // PID_Set_Value.KD=0.16;
+  // PID_Set_Value.KP_YAW=0.5;
+  // PID_Set_Value.KI_YAW=0.05;
+  // PID_Set_Value.KD_YAW=0.1;  
+  // EEP_SAVE_PID_Value(&PID_Set_Value);
 
   PITCH_PID.SetValue=0.0;
   PITCH_PID.PIDValue=&PID_Set_Value;
   
   ROLL_PID.SetValue=0.0;
   ROLL_PID.PIDValue=&PID_Set_Value;
+
+  YAW_PID.SetValue=0.0;
+  YAW_PID.PIDValue=&PID_Set_Value;
 
   LastTimeLCD=MILLIS;
   LastTimePID=MILLIS;
@@ -253,6 +334,9 @@ void APP_MAIN(void)
   if(Read_Channel.CH3<=10)
   {
     Motor_Stop();
+    PID_RESET_DATA(&PITCH_PID);
+    PID_RESET_DATA(&ROLL_PID);
+    PID_RESET_DATA(&YAW_PID);
   }
   else 
   {
@@ -262,6 +346,9 @@ void APP_MAIN(void)
 
   // static uint64_t stop=MICROS;
   // Serial1.print(" - Stop Time: "); Serial1.println(stop-start);
+
+  // Serial1.print("CH1: "); Serial1.print(Read_Channel.CH1);
+  // Serial1.print(" - CH2: "); Serial1.println(Read_Channel.CH2);
 
   // Serial1.println();
   delay(1);

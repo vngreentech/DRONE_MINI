@@ -6,37 +6,37 @@ static volatile uint32_t CH1_PPM=0, CH2_PPM=0, CH3_PPM=0, CH4_PPM=0;
 
 void ISR_CH1() 
 {
-  if (micros() > CH1_Start_Time)
+  if (MICROS > CH1_Start_Time)
   {
-    CH1_PPM = micros() - CH1_Start_Time;
-    CH1_Start_Time = micros();
+    CH1_PPM = MICROS - CH1_Start_Time;
+    CH1_Start_Time = MICROS;
   }
 }
 
 void ISR_CH2() 
 {
-  if (micros() > CH2_Start_Time)
+  if (MICROS > CH2_Start_Time)
   {
-    CH2_PPM = micros() - CH2_Start_Time;
-    CH2_Start_Time = micros();
+    CH2_PPM = MICROS - CH2_Start_Time;
+    CH2_Start_Time = MICROS;
   }
 }
 
 void ISR_CH3() 
 {
-  if (micros() > CH3_Start_Time)
+  if (MICROS > CH3_Start_Time)
   {
-    CH3_PPM = micros() - CH3_Start_Time;
-    CH3_Start_Time = micros();
+    CH3_PPM = MICROS - CH3_Start_Time;
+    CH3_Start_Time = MICROS;
   }
 }
 
 void ISR_CH4() 
 {
-  if (micros() > CH4_Start_Time)
+  if (MICROS > CH4_Start_Time)
   {
-    CH4_PPM = micros() - CH4_Start_Time;
-    CH4_Start_Time = micros();
+    CH4_PPM = MICROS - CH4_Start_Time;
+    CH4_Start_Time = MICROS;
   }
 }
 
@@ -59,7 +59,7 @@ Channel_Typedef Receiver_Read_Value(void)
 
   if(CH2_PPM >= PPM_MIN && CH2_PPM <= PPM_MAX) //CH2
   {
-    Channel_Value.CH2 = map(CH2_PPM,PPM_MIN,PPM_MAX,ZERO,CHANNEL_2_MAX);
+    Channel_Value.CH2 = map(CH2_PPM,PPM_MIN,PPM_MAX,ZERO,CHANNEL_4_MAX);
   } 
 
   if(CH3_PPM >= PPM_MIN && CH3_PPM <= PPM_MAX) //CH3

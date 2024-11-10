@@ -94,18 +94,11 @@ IMU_DATA_TYPEDEF GetIMUValue(void)
   return getIMUOrientation();
 }
 
-float fix360degrees(float val) 
+float IMU_Cal_YAW_Value(float *YawValue) 
 {
-  if (val > 180) 
-  {
-    return val - 360;
-  } 
-  else if (val < -180) 
-  {
-    return val + 360;
-  } 
-  else 
-  {
-    return val;
-  }
+  float CheckValue=*YawValue;
+  if (CheckValue > 180) CheckValue -= 360;
+  else if (CheckValue < -180) CheckValue += 360;
+
+  return (CheckValue);
 }

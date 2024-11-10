@@ -10,6 +10,8 @@
 #include "SENSOR/SENSOR.h"
 #include "PID/PID.h"
 
+#define TimeCalPID  (float(5.0)) //ms
+
 extern void APP_INIT(void);
 extern void APP_MAIN(void);
 

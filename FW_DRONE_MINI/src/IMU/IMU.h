@@ -14,6 +14,6 @@ typedef struct
 
 IMU_DATA_TYPEDEF GetIMUValue(void);
 void setupMPU(void);
-float fix360degrees(float val);
+float IMU_Cal_YAW_Value(float *YawValue); 
 
 #endif /*__IMU__*/

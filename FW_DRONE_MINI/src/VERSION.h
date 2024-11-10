@@ -8,6 +8,38 @@
 
   /***********************************************
    * Project: Drone Mini    
+   * Version: DMV.1.3
+   * Date: 10,Nov,2024
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Dev PID control: PITCH and ROLL
+   * Test control: PITCH and ROLL
+   * IMU add function check YAW value
+   * Dev PID for YAW
+   * Update version type
+   * 
+   * - Fix ERR: 
+   * 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION            ("DMV.1.3")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef FIRMWARE_VERSION_CHECK
+  #define FIRMWARE_VERSION_CHECK      (13)
+  #endif /* FIRMWARE_VERSION_CHECK */  
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE               ("10,Nov,2024")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
    * Version: DMV.0.2
    * Date: 9,Nov,2024
    * Dev: NhanNguyen

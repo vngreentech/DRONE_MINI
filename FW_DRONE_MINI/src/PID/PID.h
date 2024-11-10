@@ -9,6 +9,9 @@ typedef struct
   float KP;
   float KI;
   float KD;
+  float KP_YAW;
+  float KI_YAW;
+  float KD_YAW;  
 }PID_VALUE_typedef;
 
 typedef struct
@@ -26,6 +29,7 @@ typedef struct
 }PID_OBJECT_typedef;
 
 void PID_CALCULATOR(PID_OBJECT_typedef *PID_Object);
+void PID_CAL_YAW(PID_OBJECT_typedef *PID_Object);
 void PID_RESET_DATA(PID_OBJECT_typedef *PID_Object);
 
 #endif /*__PID_BASIC__*/

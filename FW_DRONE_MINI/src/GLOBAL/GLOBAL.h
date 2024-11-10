@@ -61,13 +61,22 @@
 
 #define CHANNEL_1_MAX (180UL)
 #define CHANNEL_2_MAX (180UL)
-#define CHANNEL_3_MAX (50UL)
+#define CHANNEL_3_MAX (80UL)
 #define CHANNEL_4_MAX (180UL)
 
 #define SERVO_MIN (0UL)
 #define SERVO_MAX (180UL)
 
-#define PID_CONTROL_VALUE_LIMIT (20)
+#define PID_CONTROL_VALUE_LIMIT (50)
+
+#define PITCH_CONTROL_LIMIT (20)
+#define ROLL_CONTROL_LIMIT  (20)
+
+/* Degree */
+#define YAW_CONTROL_LIMIT   (30)
+
+#define ENABLE_YAW_CONTROL
+
 /*==============================*/
 
 /*================================
@@ -84,7 +93,10 @@ typedef enum
 {
   KP,
   KI,
-  KD
+  KD,
+  KP_YAW,
+  KI_YAW,
+  KD_YAW
 }PID_typedef;
 /*==============================*/
 
