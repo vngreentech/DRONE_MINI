@@ -1,6 +1,8 @@
 
 #include "MOTOR.h"
 
+#ifdef FIRMWARE_VERSION
+
 static Servo Motor_1;  // ESC 1
 static Servo Motor_2;  // ESC 2
 static Servo Motor_3;  // ESC 3
@@ -75,3 +77,5 @@ void Motor_Init(void)
   Motor_4.attach(ESC_4_PIN,PPM_MIN,PPM_MAX);  
   Motor_Stop();    
 }
+#endif /* FIRMWARE_VERSION */
+

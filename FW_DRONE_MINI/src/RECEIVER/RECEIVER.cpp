@@ -1,6 +1,7 @@
 
 #include "RECEIVER.h"
 
+#ifdef FIRMWARE_VERSION
 static volatile uint32_t CH1_Start_Time = 0, CH2_Start_Time = 0, CH3_Start_Time = 0, CH4_Start_Time = 0;
 static volatile uint32_t CH1_PPM=0, CH2_PPM=0, CH3_PPM=0, CH4_PPM=0;
 
@@ -74,3 +75,4 @@ Channel_Typedef Receiver_Read_Value(void)
 
   return Channel_Value;
 }
+#endif /* FIRMWARE_VERSION */

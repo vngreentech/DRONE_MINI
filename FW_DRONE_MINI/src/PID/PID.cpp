@@ -1,6 +1,7 @@
 
 #include "PID.h"
 
+#ifdef FIRMWARE_VERSION
 void PID_CALCULATOR(PID_OBJECT_typedef *PID_Object)
 {
   PID_Object->DeltaTime = (float)(MILLIS - PID_Object->LastTimeCalPID) / 1000.0;
@@ -45,4 +46,5 @@ void PID_RESET_DATA(PID_OBJECT_typedef *PID_Object)
   PID_Object->Last_error=0;
   PID_Object->DeltaTime=0;
 }
+#endif /* FIRMWARE_VERSION */
 

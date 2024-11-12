@@ -1,6 +1,7 @@
 
 #include "IMU.h"
 
+#ifdef FIRMWARE_VERSION
 static MPU6050 mpu;
 static IMU_DATA_TYPEDEF prevOrientation;
 static IMU_DATA_TYPEDEF Angle;
@@ -102,3 +103,4 @@ float IMU_Cal_YAW_Value(float *YawValue)
 
   return (CheckValue);
 }
+#endif /* FIRMWARE_VERSION */

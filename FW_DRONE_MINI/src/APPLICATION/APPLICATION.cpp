@@ -1,5 +1,6 @@
 
 #include "APPLICATION.h"
+#ifdef FIRMWARE_VERSION
 
 HardwareSerial Serial1(RXD_1, TXD_1);
 static IMU_DATA_TYPEDEF Read_IMU;
@@ -85,7 +86,15 @@ static void Menu_Select(void)
     {
       delay(200);
       Count_Menu+=1;
+      
+      #if (FIRMWARE_VERSION_CHECK == 14)
       if(Count_Menu>6) Count_Menu=0;
+      #endif /* FIRMWARE_VERSION_CHECK */
+
+      #if (FIRMWARE_VERSION_CHECK == 15)
+      if(Count_Menu>3) Count_Menu=0;
+      #endif /* FIRMWARE_VERSION_CHECK */
+      
       STEP=0;
     }   
 
@@ -122,18 +131,20 @@ static void Menu_Select(void)
         LCD_Menu_PID(KD, PID_Set_Value.KD);
         break;
 
-      case 4: /* KP_YAW */
-        PID_SET_VALUE(KP_YAW, &PID_Set_Value.KP_YAW);
-        LCD_Menu_PID(KP_YAW, PID_Set_Value.KP_YAW);
-        break;
-      case 5: /* KI_YAW */
-        PID_SET_VALUE(KI_YAW, &PID_Set_Value.KI_YAW);
-        LCD_Menu_PID(KI_YAW, PID_Set_Value.KI_YAW);
-        break;
-      case 6: /* KD_YAW */
-        PID_SET_VALUE(KD_YAW, &PID_Set_Value.KD_YAW);
-        LCD_Menu_PID(KD_YAW, PID_Set_Value.KD_YAW);
-        break;                    
+      #if (FIRMWARE_VERSION_CHECK == 14)
+        case 4: /* KP_YAW */
+          PID_SET_VALUE(KP_YAW, &PID_Set_Value.KP_YAW);
+          LCD_Menu_PID(KP_YAW, PID_Set_Value.KP_YAW);
+          break;
+        case 5: /* KI_YAW */
+          PID_SET_VALUE(KI_YAW, &PID_Set_Value.KI_YAW);
+          LCD_Menu_PID(KI_YAW, PID_Set_Value.KI_YAW);
+          break;
+        case 6: /* KD_YAW */
+          PID_SET_VALUE(KD_YAW, &PID_Set_Value.KD_YAW);
+          LCD_Menu_PID(KD_YAW, PID_Set_Value.KD_YAW);
+          break; 
+      #endif /* FIRMWARE_VERSION_CHECK */                   
       
       default:
         break;
@@ -203,24 +214,40 @@ static void PID_MOTOR_CONTROL(void)
   static MOTOR_Speed_typedef Speed_Motor;
   static float PITCH_CONTROL = 0;
   static float ROLL_CONTROL = 0;
+  static float YAW_CONTROL = 0;
   
   PITCH_PID.ReadValue = Read_IMU.Pitch;
   ROLL_PID.ReadValue = Read_IMU.Roll;
+
+  #if (FIRMWARE_VERSION_CHECK == 14)
   YAW_PID.ReadValue = Read_IMU.Yaw;
+  #endif /* FIRMWARE_VERSION_CHECK */
 
   if( (uint32_t)(MILLIS-LastTimePID) >= TimeCalPID )
   {
     PITCH_CONTROL = map(Read_Channel.CH2,ZERO,CHANNEL_2_MAX, PITCH_CONTROL_LIMIT, -PITCH_CONTROL_LIMIT);
     ROLL_CONTROL = map(Read_Channel.CH1,ZERO,CHANNEL_1_MAX, ROLL_CONTROL_LIMIT, -ROLL_CONTROL_LIMIT);
-    YAW_PID.SetValue = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, -YAW_CONTROL_LIMIT, YAW_CONTROL_LIMIT);
+    
+    #if (FIRMWARE_VERSION_CHECK == 14)
+    YAW_PID.SetValue = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
+    #endif /* FIRMWARE_VERSION_CHECK */
+    #if (FIRMWARE_VERSION_CHECK == 15)
+    YAW_CONTROL = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
+    #endif /* FIRMWARE_VERSION_CHECK */
 
     PID_CALCULATOR(&PITCH_PID);
     PID_CALCULATOR(&ROLL_PID);
+    
+    #if (FIRMWARE_VERSION_CHECK == 14)
     PID_CAL_YAW(&YAW_PID);
+    #endif /* FIRMWARE_VERSION_CHECK */
 
     PITCH_PID.Output = constrain(PITCH_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
     ROLL_PID.Output = constrain(ROLL_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
+    
+    #if (FIRMWARE_VERSION_CHECK == 14)
     YAW_PID.Output = constrain(YAW_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
+    #endif /* FIRMWARE_VERSION_CHECK */
 
     /*PITCH control: OK*/
     // Speed_Motor.Motor_1 = round(Read_Channel.CH3 + PITCH_PID.Output);
@@ -248,10 +275,19 @@ static void PID_MOTOR_CONTROL(void)
 
     /* PITCH + ROLL + YAW */
     #ifdef ENABLE_YAW_CONTROL
-    Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 + YAW_PID.Output);
-    Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 - YAW_PID.Output);
-    Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + YAW_PID.Output);
-    Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - YAW_PID.Output);    
+      #if (FIRMWARE_VERSION_CHECK == 14)
+      Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 + YAW_PID.Output);
+      Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 - YAW_PID.Output);
+      Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + YAW_PID.Output);
+      Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - YAW_PID.Output);  
+      #endif /* FIRMWARE_VERSION_CHECK */  
+
+      #if (FIRMWARE_VERSION_CHECK == 15)
+      Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 + YAW_CONTROL);
+      Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 - YAW_CONTROL);
+      Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + YAW_CONTROL);
+      Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - YAW_CONTROL);  
+      #endif /* FIRMWARE_VERSION_CHECK */      
     #endif /* ENABLE_YAW_CONTROL */    
     
     Speed_Motor.Motor_1 = constrain(Speed_Motor.Motor_1,ZERO,SERVO_MAX);
@@ -266,7 +302,9 @@ static void PID_MOTOR_CONTROL(void)
 
     PITCH_PID.LastTimeCalPID=MILLIS;
     ROLL_PID.LastTimeCalPID=MILLIS;
+    #if (FIRMWARE_VERSION_CHECK == 14)
     YAW_PID.LastTimeCalPID=MILLIS;
+    #endif /* FIRMWARE_VERSION_CHECK */
     LastTimePID = MILLIS;
   }
 }
@@ -279,6 +317,10 @@ static void Check_Reset_PID(void)
     Motor_Stop();
     PID_RESET_DATA(&PITCH_PID);
     PID_RESET_DATA(&ROLL_PID);
+
+    #if (FIRMWARE_VERSION_CHECK == 14)
+    PID_RESET_DATA(&YAW_PID);
+    #endif /* FIRMWARE_VERSION_CHECK */
   }
 }
 
@@ -315,8 +357,10 @@ void APP_INIT(void)
   ROLL_PID.SetValue=0.0;
   ROLL_PID.PIDValue=&PID_Set_Value;
 
+  #if (FIRMWARE_VERSION_CHECK == 14)
   YAW_PID.SetValue=0.0;
   YAW_PID.PIDValue=&PID_Set_Value;
+  #endif /* FIRMWARE_VERSION_CHECK */
 
   LastTimeLCD=MILLIS;
   LastTimePID=MILLIS;
@@ -336,7 +380,10 @@ void APP_MAIN(void)
     Motor_Stop();
     PID_RESET_DATA(&PITCH_PID);
     PID_RESET_DATA(&ROLL_PID);
+
+    #if (FIRMWARE_VERSION_CHECK == 14)
     PID_RESET_DATA(&YAW_PID);
+    #endif /* FIRMWARE_VERSION_CHECK */
   }
   else 
   {
@@ -353,3 +400,4 @@ void APP_MAIN(void)
   // Serial1.println();
   delay(1);
 }
+#endif /* FIRMWARE_VERSION */

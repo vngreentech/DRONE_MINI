@@ -1,6 +1,7 @@
 
 #include "LCD.h"
 
+#ifdef FIRMWARE_VERSION
 U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0);
 
 void LCD_Init(void)
@@ -108,3 +109,5 @@ void LCD_Menu_SAVE(void)
   u8g2.print("SAVE PID...");
   u8g2.sendBuffer();
 }
+#endif /* FIRMWARE_VERSION */
+

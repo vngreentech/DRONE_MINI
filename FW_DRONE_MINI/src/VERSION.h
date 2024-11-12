@@ -8,6 +8,64 @@
 
   /***********************************************
    * Project: Drone Mini    
+   * Version: DMV.1.5
+   * Date: 12,Nov,2024
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Test PID for PITCH and ROLL
+   * YAW control use motor torque
+   * 
+   * - Fix ERR: 
+   * 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION            ("DMV.1.5")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef FIRMWARE_VERSION_CHECK
+  #define FIRMWARE_VERSION_CHECK      (15)
+  #endif /* FIRMWARE_VERSION_CHECK */  
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE               ("10,Nov,2024")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
+   * Version: DMV.1.4
+   * Date: 12,Nov,2024
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Test PID for PITCH and ROLL
+   * YAW control use PID
+   * 
+   * - Fix ERR: 
+   * 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION            ("DMV.1.4")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef FIRMWARE_VERSION_CHECK
+  #define FIRMWARE_VERSION_CHECK      (14)
+  #endif /* FIRMWARE_VERSION_CHECK */  
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE               ("10,Nov,2024")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
    * Version: DMV.1.3
    * Date: 10,Nov,2024
    * Dev: NhanNguyen
