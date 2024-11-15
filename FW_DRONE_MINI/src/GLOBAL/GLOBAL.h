@@ -61,7 +61,7 @@
 
 #define CHANNEL_1_MAX (180UL)
 #define CHANNEL_2_MAX (180UL)
-#define CHANNEL_3_MAX (80UL)
+#define CHANNEL_3_MAX (180UL)
 #define CHANNEL_4_MAX (180UL)
 
 #define SERVO_MIN (0UL)

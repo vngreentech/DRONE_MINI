@@ -39,11 +39,11 @@ static void PID_SET_VALUE(PID_typedef SelectPID, float *PIDValue)
 {
   if( digitalRead(BUTTON_PLUS_PIN)==false && digitalRead(BUTTON_MINUS_PIN)==true )
   {
-    if(SelectPID==KP) *PIDValue = *PIDValue + 0.1;
+    if(SelectPID==KP) *PIDValue = *PIDValue + 0.01;
     else if(SelectPID==KI) *PIDValue = *PIDValue + 0.001;
     else if(SelectPID==KD)  *PIDValue = *PIDValue + 0.01;
     
-    else if(SelectPID==KP_YAW)  *PIDValue = *PIDValue + 0.1;
+    else if(SelectPID==KP_YAW)  *PIDValue = *PIDValue + 0.01;
     else if(SelectPID==KI_YAW) *PIDValue = *PIDValue + 0.001;
     else *PIDValue = *PIDValue + 0.01;
 
@@ -52,11 +52,11 @@ static void PID_SET_VALUE(PID_typedef SelectPID, float *PIDValue)
 
   if( digitalRead(BUTTON_MINUS_PIN)==false && digitalRead(BUTTON_PLUS_PIN)==true )
   {
-    if(SelectPID==KP) *PIDValue = *PIDValue - 0.1;
+    if(SelectPID==KP) *PIDValue = *PIDValue - 0.01;
     else if(SelectPID==KI) *PIDValue = *PIDValue - 0.001;
     else if(SelectPID==KD)  *PIDValue = *PIDValue - 0.01;   
 
-    else if(SelectPID==KP_YAW) *PIDValue = *PIDValue - 0.1;
+    else if(SelectPID==KP_YAW) *PIDValue = *PIDValue - 0.01;
     else if(SelectPID==KI_YAW) *PIDValue = *PIDValue - 0.001;
     else *PIDValue = *PIDValue - 0.01;
 

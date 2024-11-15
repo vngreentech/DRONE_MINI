@@ -56,7 +56,7 @@ void LCD_Menu_PID(PID_typedef PID_Select, float PID_Value)
     case KP:
       u8g2.print("KP:");
       u8g2.setCursor(40, 22);
-      u8g2.print(PID_Value,1);
+      u8g2.print(PID_Value,2);
       break;
     case KI:
       u8g2.print("KI:");
@@ -72,7 +72,7 @@ void LCD_Menu_PID(PID_typedef PID_Select, float PID_Value)
     case KP_YAW:
       u8g2.print("KP_YAW:");
       u8g2.setCursor(90, 22);
-      u8g2.print(PID_Value,1);
+      u8g2.print(PID_Value,2);
       break;
     case KI_YAW:
       u8g2.print("KI_YAW:");
