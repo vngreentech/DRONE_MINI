@@ -18,6 +18,7 @@ void Motor_Stop(void)
 
 void Motor_Control(MOTOR_typedef MOTOR, uint8_t SpeedValue)
 {
+  #ifndef STOP_FOR_TEST
   if(MOTOR==MOTOR_1)
   {
     if(SpeedValue<=ZERO) Motor_1.write(ZERO);
@@ -67,6 +68,11 @@ void Motor_Control(MOTOR_typedef MOTOR, uint8_t SpeedValue)
     }
   }  
   else Motor_Stop();
+  #endif /* STOP_FOR_TEST */
+
+  #ifdef STOP_FOR_TEST
+  Motor_Stop();
+  #endif /* STOP_FOR_TEST */
 }
 
 void Motor_Init(void)

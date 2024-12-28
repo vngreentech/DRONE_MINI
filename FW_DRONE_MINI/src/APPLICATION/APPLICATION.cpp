@@ -37,7 +37,7 @@ static void Hardware_Driver_Init(void)
 
 static void PID_SET_VALUE(PID_typedef SelectPID, float *PIDValue)
 {
-  if( digitalRead(BUTTON_PLUS_PIN)==false && digitalRead(BUTTON_MINUS_PIN)==true )
+  if( READ_BUTTON_PLUS==false && READ_BUTTON_MINUS==true )
   {
     if(SelectPID==KP) *PIDValue = *PIDValue + 0.01;
     else if(SelectPID==KI) *PIDValue = *PIDValue + 0.001;
@@ -50,7 +50,7 @@ static void PID_SET_VALUE(PID_typedef SelectPID, float *PIDValue)
     if(*PIDValue>=1000) *PIDValue=1000;
   }
 
-  if( digitalRead(BUTTON_MINUS_PIN)==false && digitalRead(BUTTON_PLUS_PIN)==true )
+  if( READ_BUTTON_MINUS==false && READ_BUTTON_PLUS==true )
   {
     if(SelectPID==KP) *PIDValue = *PIDValue - 0.01;
     else if(SelectPID==KI) *PIDValue = *PIDValue - 0.001;
@@ -72,7 +72,7 @@ static void Menu_Select(void)
 
   if(STEP==0)
   {
-    if(digitalRead(BUTTON_SELECT_PIN)==false)
+    if(READ_BUTTON_SELECT==false)
     {
       LastTimeTick=MILLIS;
       STEP=1;
@@ -81,13 +81,14 @@ static void Menu_Select(void)
   else if(STEP==1)
   {
     /* Select menu */
-    if( ((uint32_t)(MILLIS-LastTimeTick)<=500) && digitalRead(BUTTON_SELECT_PIN)==true && \
-        digitalRead(BUTTON_PLUS_PIN)==true && digitalRead(BUTTON_MINUS_PIN)==true )
+    if( ((uint32_t)(MILLIS-LastTimeTick)<=500) && READ_BUTTON_SELECT==true && \
+        READ_BUTTON_PLUS==true && READ_BUTTON_MINUS==true )
     {
-      delay(200);
+      PAUSE_MILLIS(200);
       Count_Menu+=1;
       
-      #if (FIRMWARE_VERSION_CHECK == 14)
+      #if ( FIRMWARE_VERSION_CHECK == 14 || \
+            FIRMWARE_VERSION_CHECK == 17)
       if(Count_Menu>6) Count_Menu=0;
       #endif /* FIRMWARE_VERSION_CHECK */
 
@@ -99,13 +100,13 @@ static void Menu_Select(void)
     }   
 
     /* Save new PID value */
-    if( ((uint32_t)(MILLIS-LastTimeTick)>=3000) && digitalRead(BUTTON_SELECT_PIN)==true && \
-      digitalRead(BUTTON_PLUS_PIN)==true && digitalRead(BUTTON_MINUS_PIN)==true )
+    if( ((uint32_t)(MILLIS-LastTimeTick)>=3000) && READ_BUTTON_SELECT==true && \
+      READ_BUTTON_PLUS==true && READ_BUTTON_MINUS==true )
     {
       LCD_Menu_SAVE();
       EEP_SAVE_PID_Value(&PID_Set_Value);  
       STEP=0;
-      delay(3000);
+      PAUSE_MILLIS(3000);
     }
   }  
 
@@ -131,7 +132,8 @@ static void Menu_Select(void)
         LCD_Menu_PID(KD, PID_Set_Value.KD);
         break;
 
-      #if (FIRMWARE_VERSION_CHECK == 14)
+      #if ( FIRMWARE_VERSION_CHECK == 14 || \
+            FIRMWARE_VERSION_CHECK == 17)
         case 4: /* KP_YAW */
           PID_SET_VALUE(KP_YAW, &PID_Set_Value.KP_YAW);
           LCD_Menu_PID(KP_YAW, PID_Set_Value.KP_YAW);
@@ -164,7 +166,7 @@ static PID_VALUE_typedef EEP_Read_PID_Value(void)
 static void EEP_SAVE_PID_Value(PID_VALUE_typedef *PIDValue)
 {
   EEPROM.put(10, *PIDValue);
-  delay(1);
+  PAUSE_MILLIS(1);
 }
 
 static void RESET_MACHINE(void)
@@ -174,8 +176,8 @@ static void RESET_MACHINE(void)
 
   if(STEP==0)
   {
-    if( digitalRead(BUTTON_SELECT_PIN)==0 && digitalRead(BUTTON_PLUS_PIN)==0 \
-        && digitalRead(BUTTON_MINUS_PIN)==0 )
+    if( READ_BUTTON_SELECT==0 && READ_BUTTON_PLUS==0 \
+        && READ_BUTTON_MINUS==0 )
     {
       LastTimeTick=MILLIS;
       STEP=1;
@@ -183,8 +185,8 @@ static void RESET_MACHINE(void)
   }
   else if(STEP==1)
   {
-    if( (uint32_t)(MILLIS-LastTimeTick)>=3000 && digitalRead(BUTTON_SELECT_PIN)==0\
-        && digitalRead(BUTTON_PLUS_PIN)==0 && digitalRead(BUTTON_MINUS_PIN)==0)
+    if( (uint32_t)(MILLIS-LastTimeTick)>=3000 && READ_BUTTON_SELECT==0\
+        && READ_BUTTON_PLUS==0 && READ_BUTTON_MINUS==0)
     {
       LCD_Menu_RESET();
       
@@ -195,13 +197,13 @@ static void RESET_MACHINE(void)
       PID_Set_Value.KI_YAW=0.05;
       PID_Set_Value.KD_YAW=0.1;
       EEP_SAVE_PID_Value(&PID_Set_Value);  
-      delay(3000);
+      PAUSE_MILLIS(3000);
 
       NVIC_SystemReset();
     }
 
-    if( digitalRead(BUTTON_SELECT_PIN)==1 && digitalRead(BUTTON_PLUS_PIN)==1 \
-        && digitalRead(BUTTON_MINUS_PIN)==1 )
+    if( READ_BUTTON_SELECT==1 && READ_BUTTON_PLUS==1 \
+        && READ_BUTTON_MINUS==1 )
     {
       STEP=0; LastTimeTick=0;
     }
@@ -217,9 +219,15 @@ static void PID_MOTOR_CONTROL(void)
   static float YAW_CONTROL = 0;
   
   PITCH_PID.ReadValue = Read_IMU.Pitch;
-  ROLL_PID.ReadValue = Read_IMU.Roll;
+  // if(PITCH_PID.ReadValue>=PITCH_ROLL_DEGREE_LIMIT) PITCH_PID.ReadValue==PITCH_ROLL_DEGREE_LIMIT;
+  // else if(PITCH_PID.ReadValue<=-PITCH_ROLL_DEGREE_LIMIT) PITCH_PID.ReadValue==-PITCH_ROLL_DEGREE_LIMIT;
 
-  #if (FIRMWARE_VERSION_CHECK == 14)
+  ROLL_PID.ReadValue = Read_IMU.Roll;
+  // if(ROLL_PID.ReadValue>=PITCH_ROLL_DEGREE_LIMIT) ROLL_PID.ReadValue==PITCH_ROLL_DEGREE_LIMIT;
+  // else if(ROLL_PID.ReadValue<=-PITCH_ROLL_DEGREE_LIMIT) ROLL_PID.ReadValue==-PITCH_ROLL_DEGREE_LIMIT;
+
+  #if ( FIRMWARE_VERSION_CHECK == 14 || \
+        FIRMWARE_VERSION_CHECK == 17)
   YAW_PID.ReadValue = Read_IMU.Yaw;
   #endif /* FIRMWARE_VERSION_CHECK */
 
@@ -228,25 +236,32 @@ static void PID_MOTOR_CONTROL(void)
     PITCH_CONTROL = map(Read_Channel.CH2,ZERO,CHANNEL_2_MAX, PITCH_CONTROL_LIMIT, -PITCH_CONTROL_LIMIT);
     ROLL_CONTROL = map(Read_Channel.CH1,ZERO,CHANNEL_1_MAX, ROLL_CONTROL_LIMIT, -ROLL_CONTROL_LIMIT);
     
-    #if (FIRMWARE_VERSION_CHECK == 14)
+    #if ( FIRMWARE_VERSION_CHECK == 14 || \
+          FIRMWARE_VERSION_CHECK == 17)
     YAW_PID.SetValue = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
     #endif /* FIRMWARE_VERSION_CHECK */
+
     #if (FIRMWARE_VERSION_CHECK == 15)
     YAW_CONTROL = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
     #endif /* FIRMWARE_VERSION_CHECK */
 
-    PID_CALCULATOR(&PITCH_PID);
-    PID_CALCULATOR(&ROLL_PID);
-    
-    #if (FIRMWARE_VERSION_CHECK == 14)
-    PID_CAL_YAW(&YAW_PID);
-    #endif /* FIRMWARE_VERSION_CHECK */
+    #if (FIRMWARE_VERSION_CHECK == 16)
+    YAW_PID.SetValue += map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
+    if(YAW_PID.SetValue>=360) YAW_PID.SetValue = 360;
+    else if(YAW_PID.SetValue<=-360) YAW_PID.SetValue = -360;
+    #endif /* FIRMWARE_VERSION_CHECK */    
 
+    PID_CALCULATOR(&PITCH_PID);
     PITCH_PID.Output = constrain(PITCH_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
+
+    PID_CALCULATOR(&ROLL_PID);
     ROLL_PID.Output = constrain(ROLL_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
     
-    #if (FIRMWARE_VERSION_CHECK == 14)
+    #if ( FIRMWARE_VERSION_CHECK == 14 || \
+          FIRMWARE_VERSION_CHECK == 17)
+    PID_CAL_YAW(&YAW_PID);
     YAW_PID.Output = constrain(YAW_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
+    YAW_PID.Output = -YAW_PID.Output;
     #endif /* FIRMWARE_VERSION_CHECK */
 
     /*PITCH control: OK*/
@@ -275,7 +290,8 @@ static void PID_MOTOR_CONTROL(void)
 
     /* PITCH + ROLL + YAW */
     #ifdef ENABLE_YAW_CONTROL
-      #if (FIRMWARE_VERSION_CHECK == 14)
+      #if ( FIRMWARE_VERSION_CHECK == 14 || \
+            FIRMWARE_VERSION_CHECK == 17)
       Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 + YAW_PID.Output);
       Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 - YAW_PID.Output);
       Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + YAW_PID.Output);
@@ -295,16 +311,29 @@ static void PID_MOTOR_CONTROL(void)
     Speed_Motor.Motor_3 = constrain(Speed_Motor.Motor_3,ZERO,SERVO_MAX);
     Speed_Motor.Motor_4 = constrain(Speed_Motor.Motor_4,ZERO,SERVO_MAX);
 
+    if(Read_Channel.CH3<=10)
+    {
+      Speed_Motor.Motor_1 = 0;
+      Speed_Motor.Motor_2 = 0;
+      Speed_Motor.Motor_3 = 0;
+      Speed_Motor.Motor_4 = 0;
+    }
+    
+    #ifndef STOP_FOR_TEST
     Motor_Control(MOTOR_1, Speed_Motor.Motor_1);
     Motor_Control(MOTOR_2, Speed_Motor.Motor_2);
     Motor_Control(MOTOR_3, Speed_Motor.Motor_3);
     Motor_Control(MOTOR_4, Speed_Motor.Motor_4);
+    #endif /*STOP_FOR_TEST*/
 
     PITCH_PID.LastTimeCalPID=MILLIS;
     ROLL_PID.LastTimeCalPID=MILLIS;
-    #if (FIRMWARE_VERSION_CHECK == 14)
+
+    #if ( FIRMWARE_VERSION_CHECK == 14 || \
+          FIRMWARE_VERSION_CHECK == 17)
     YAW_PID.LastTimeCalPID=MILLIS;
     #endif /* FIRMWARE_VERSION_CHECK */
+
     LastTimePID = MILLIS;
   }
 }
@@ -318,7 +347,8 @@ static void Check_Reset_PID(void)
     PID_RESET_DATA(&PITCH_PID);
     PID_RESET_DATA(&ROLL_PID);
 
-    #if (FIRMWARE_VERSION_CHECK == 14)
+    #if ( FIRMWARE_VERSION_CHECK == 14 || \
+          FIRMWARE_VERSION_CHECK == 17)
     PID_RESET_DATA(&YAW_PID);
     #endif /* FIRMWARE_VERSION_CHECK */
   }
@@ -357,7 +387,8 @@ void APP_INIT(void)
   ROLL_PID.SetValue=0.0;
   ROLL_PID.PIDValue=&PID_Set_Value;
 
-  #if (FIRMWARE_VERSION_CHECK == 14)
+  #if ( FIRMWARE_VERSION_CHECK == 14 || \
+        FIRMWARE_VERSION_CHECK == 17)
   YAW_PID.SetValue=0.0;
   YAW_PID.PIDValue=&PID_Set_Value;
   #endif /* FIRMWARE_VERSION_CHECK */
@@ -381,7 +412,8 @@ void APP_MAIN(void)
     PID_RESET_DATA(&PITCH_PID);
     PID_RESET_DATA(&ROLL_PID);
 
-    #if (FIRMWARE_VERSION_CHECK == 14)
+    #if ( FIRMWARE_VERSION_CHECK == 14 || \
+          FIRMWARE_VERSION_CHECK == 17)
     PID_RESET_DATA(&YAW_PID);
     #endif /* FIRMWARE_VERSION_CHECK */
   }
@@ -398,6 +430,6 @@ void APP_MAIN(void)
   // Serial1.print(" - CH2: "); Serial1.println(Read_Channel.CH2);
 
   // Serial1.println();
-  delay(1);
+  PAUSE_MICROS(100);
 }
 #endif /* FIRMWARE_VERSION */

@@ -8,6 +8,69 @@
 
   /***********************************************
    * Project: Drone Mini    
+   * Version: DMV.1.7
+   * Date: 28,Dec,2024
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Test PID for PITCH, ROLL, YAW
+   * YAW control use PID
+   * YAW fix PID controller
+   * Update Yaw control value, test pass 
+   * for pitch and roll
+   * add macro STOP_FOR_TEST
+   * 
+   * - Fix ERR: 
+   * 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION            ("DMV.1.7")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef FIRMWARE_VERSION_CHECK
+  #define FIRMWARE_VERSION_CHECK      (17)
+  #endif /* FIRMWARE_VERSION_CHECK */  
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE               ("28,Dec,2024")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
+   * Version: DMV.1.6
+   * Date: 22,Nov,2024
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Test PID for PITCH, ROLL, YAW
+   * YAW control use PID
+   * YAW fix PID controller
+   * 
+   * - Fix ERR: 
+   * 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION            ("DMV.1.6")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef FIRMWARE_VERSION_CHECK
+  #define FIRMWARE_VERSION_CHECK      (16)
+  #endif /* FIRMWARE_VERSION_CHECK */  
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE               ("22,Nov,2024")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
    * Version: DMV.1.5
    * Date: 12,Nov,2024
    * Dev: NhanNguyen
@@ -32,7 +95,7 @@
   #define FIRMWARE_VERSION_CHECK      (15)
   #endif /* FIRMWARE_VERSION_CHECK */  
   #ifndef RELEASES_DATE
-  #define RELEASES_DATE               ("10,Nov,2024")
+  #define RELEASES_DATE               ("12,Nov,2024")
   #endif /* RELEASES_DATE */
 
   /***********************************************
@@ -61,7 +124,7 @@
   #define FIRMWARE_VERSION_CHECK      (14)
   #endif /* FIRMWARE_VERSION_CHECK */  
   #ifndef RELEASES_DATE
-  #define RELEASES_DATE               ("10,Nov,2024")
+  #define RELEASES_DATE               ("12,Nov,2024")
   #endif /* RELEASES_DATE */
 
   /***********************************************
