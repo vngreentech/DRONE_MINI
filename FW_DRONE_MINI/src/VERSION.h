@@ -8,6 +8,40 @@
 
   /***********************************************
    * Project: Drone Mini    
+   * Version: DMV.1.8
+   * Date: 1,Jan,2025
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Integral limit -500 -> 500
+   * Add macro: YAW_GAINS_VALUE
+   * Clear Pitch/Roll degree limit
+   * Test flysky i6
+   * Pitch, Roll ok, fix yaw controller
+   * Update: method for convert CH4 value
+   * to Yaw set value
+   * 
+   * - Fix ERR: 
+   * 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION            ("DMV.1.8")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef FIRMWARE_VERSION_CHECK
+  #define FIRMWARE_VERSION_CHECK      (18)
+  #endif /* FIRMWARE_VERSION_CHECK */  
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE               ("1,Jan,2025")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
    * Version: DMV.1.7
    * Date: 28,Dec,2024
    * Dev: NhanNguyen

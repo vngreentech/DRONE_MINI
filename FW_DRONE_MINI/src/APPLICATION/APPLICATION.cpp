@@ -88,7 +88,8 @@ static void Menu_Select(void)
       Count_Menu+=1;
       
       #if ( FIRMWARE_VERSION_CHECK == 14 || \
-            FIRMWARE_VERSION_CHECK == 17)
+            FIRMWARE_VERSION_CHECK == 17 || \
+            FIRMWARE_VERSION_CHECK == 18)
       if(Count_Menu>6) Count_Menu=0;
       #endif /* FIRMWARE_VERSION_CHECK */
 
@@ -133,7 +134,8 @@ static void Menu_Select(void)
         break;
 
       #if ( FIRMWARE_VERSION_CHECK == 14 || \
-            FIRMWARE_VERSION_CHECK == 17)
+            FIRMWARE_VERSION_CHECK == 17 || \
+            FIRMWARE_VERSION_CHECK == 18)
         case 4: /* KP_YAW */
           PID_SET_VALUE(KP_YAW, &PID_Set_Value.KP_YAW);
           LCD_Menu_PID(KP_YAW, PID_Set_Value.KP_YAW);
@@ -217,17 +219,15 @@ static void PID_MOTOR_CONTROL(void)
   static float PITCH_CONTROL = 0;
   static float ROLL_CONTROL = 0;
   static float YAW_CONTROL = 0;
+  static int8_t Read_CH4=0;
   
   PITCH_PID.ReadValue = Read_IMU.Pitch;
-  // if(PITCH_PID.ReadValue>=PITCH_ROLL_DEGREE_LIMIT) PITCH_PID.ReadValue==PITCH_ROLL_DEGREE_LIMIT;
-  // else if(PITCH_PID.ReadValue<=-PITCH_ROLL_DEGREE_LIMIT) PITCH_PID.ReadValue==-PITCH_ROLL_DEGREE_LIMIT;
 
   ROLL_PID.ReadValue = Read_IMU.Roll;
-  // if(ROLL_PID.ReadValue>=PITCH_ROLL_DEGREE_LIMIT) ROLL_PID.ReadValue==PITCH_ROLL_DEGREE_LIMIT;
-  // else if(ROLL_PID.ReadValue<=-PITCH_ROLL_DEGREE_LIMIT) ROLL_PID.ReadValue==-PITCH_ROLL_DEGREE_LIMIT;
 
   #if ( FIRMWARE_VERSION_CHECK == 14 || \
-        FIRMWARE_VERSION_CHECK == 17)
+        FIRMWARE_VERSION_CHECK == 17 || \
+        FIRMWARE_VERSION_CHECK == 18)
   YAW_PID.ReadValue = Read_IMU.Yaw;
   #endif /* FIRMWARE_VERSION_CHECK */
 
@@ -238,7 +238,7 @@ static void PID_MOTOR_CONTROL(void)
     
     #if ( FIRMWARE_VERSION_CHECK == 14 || \
           FIRMWARE_VERSION_CHECK == 17)
-    YAW_PID.SetValue = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
+    YAW_PID.SetValue += map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
     #endif /* FIRMWARE_VERSION_CHECK */
 
     #if (FIRMWARE_VERSION_CHECK == 15)
@@ -249,7 +249,16 @@ static void PID_MOTOR_CONTROL(void)
     YAW_PID.SetValue += map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
     if(YAW_PID.SetValue>=360) YAW_PID.SetValue = 360;
     else if(YAW_PID.SetValue<=-360) YAW_PID.SetValue = -360;
-    #endif /* FIRMWARE_VERSION_CHECK */    
+    #endif /* FIRMWARE_VERSION_CHECK */
+
+    #if (FIRMWARE_VERSION_CHECK == 18) 
+    Read_CH4 = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
+    if( (Read_CH4>=2) ) YAW_PID.SetValue += 1;
+    else if( (Read_CH4<=-2) ) YAW_PID.SetValue -= 1;
+
+    if(YAW_PID.SetValue > 180) YAW_PID.SetValue -= 360;
+    else if(YAW_PID.SetValue < -180) YAW_PID.SetValue += 360;
+    #endif /* FIRMWARE_VERSION_CHECK */   
 
     PID_CALCULATOR(&PITCH_PID);
     PITCH_PID.Output = constrain(PITCH_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
@@ -258,7 +267,8 @@ static void PID_MOTOR_CONTROL(void)
     ROLL_PID.Output = constrain(ROLL_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
     
     #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17)
+          FIRMWARE_VERSION_CHECK == 17 || \
+          FIRMWARE_VERSION_CHECK == 18)
     PID_CAL_YAW(&YAW_PID);
     YAW_PID.Output = constrain(YAW_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
     YAW_PID.Output = -YAW_PID.Output;
@@ -291,11 +301,12 @@ static void PID_MOTOR_CONTROL(void)
     /* PITCH + ROLL + YAW */
     #ifdef ENABLE_YAW_CONTROL
       #if ( FIRMWARE_VERSION_CHECK == 14 || \
-            FIRMWARE_VERSION_CHECK == 17)
-      Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 + YAW_PID.Output);
-      Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 - YAW_PID.Output);
-      Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + YAW_PID.Output);
-      Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - YAW_PID.Output);  
+            FIRMWARE_VERSION_CHECK == 17 || \
+            FIRMWARE_VERSION_CHECK == 18)
+      Speed_Motor.Motor_1 = round( Speed_Motor.Motor_1 + (YAW_PID.Output * YAW_GAINS_VALUE) );
+      Speed_Motor.Motor_2 = round( Speed_Motor.Motor_2 - (YAW_PID.Output * YAW_GAINS_VALUE) );
+      Speed_Motor.Motor_3 = round( Speed_Motor.Motor_3 + (YAW_PID.Output * YAW_GAINS_VALUE) );
+      Speed_Motor.Motor_4 = round( Speed_Motor.Motor_4 - (YAW_PID.Output * YAW_GAINS_VALUE) );        
       #endif /* FIRMWARE_VERSION_CHECK */  
 
       #if (FIRMWARE_VERSION_CHECK == 15)
@@ -330,12 +341,17 @@ static void PID_MOTOR_CONTROL(void)
     ROLL_PID.LastTimeCalPID=MILLIS;
 
     #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17)
+          FIRMWARE_VERSION_CHECK == 17 || \
+          FIRMWARE_VERSION_CHECK == 18)
     YAW_PID.LastTimeCalPID=MILLIS;
     #endif /* FIRMWARE_VERSION_CHECK */
 
     LastTimePID = MILLIS;
   }
+
+  // Serial1.print("ReadCH4: "); Serial1.print(Read_CH4);
+  // Serial1.print(" - SetValue: "); Serial1.println(YAW_PID.SetValue);
+
 }
 
 static void Check_Reset_PID(void)
@@ -348,7 +364,8 @@ static void Check_Reset_PID(void)
     PID_RESET_DATA(&ROLL_PID);
 
     #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17)
+          FIRMWARE_VERSION_CHECK == 17 || \
+          FIRMWARE_VERSION_CHECK == 18)
     PID_RESET_DATA(&YAW_PID);
     #endif /* FIRMWARE_VERSION_CHECK */
   }
@@ -388,7 +405,8 @@ void APP_INIT(void)
   ROLL_PID.PIDValue=&PID_Set_Value;
 
   #if ( FIRMWARE_VERSION_CHECK == 14 || \
-        FIRMWARE_VERSION_CHECK == 17)
+        FIRMWARE_VERSION_CHECK == 17 || \
+        FIRMWARE_VERSION_CHECK == 18)
   YAW_PID.SetValue=0.0;
   YAW_PID.PIDValue=&PID_Set_Value;
   #endif /* FIRMWARE_VERSION_CHECK */
@@ -413,7 +431,8 @@ void APP_MAIN(void)
     PID_RESET_DATA(&ROLL_PID);
 
     #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17)
+          FIRMWARE_VERSION_CHECK == 17 || \
+          FIRMWARE_VERSION_CHECK == 18)
     PID_RESET_DATA(&YAW_PID);
     #endif /* FIRMWARE_VERSION_CHECK */
   }

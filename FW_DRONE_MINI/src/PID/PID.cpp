@@ -8,7 +8,7 @@ void PID_CALCULATOR(PID_OBJECT_typedef *PID_Object)
 
   PID_Object->Error = (PID_Object->SetValue) - (PID_Object->ReadValue);
   PID_Object->Integral += (PID_Object->Error * PID_Object->DeltaTime);
-  PID_Object->Integral = constrain(PID_Object->Integral, -1000, 1000);
+  PID_Object->Integral = constrain(PID_Object->Integral, -500, 500);
   PID_Object->Derivative = (PID_Object->Error - PID_Object->Last_error) / PID_Object->DeltaTime;
 
   PID_Object->Output =  (PID_Object->PIDValue->KP * PID_Object->Error)\
@@ -28,7 +28,7 @@ void PID_CAL_YAW(PID_OBJECT_typedef *PID_Object)
   else if (PID_Object->Error < -180) PID_Object->Error += 360;
 
   PID_Object->Integral += (PID_Object->Error * PID_Object->DeltaTime);
-  PID_Object->Integral = constrain(PID_Object->Integral, -1000, 1000);
+  PID_Object->Integral = constrain(PID_Object->Integral, -500, 500);
   PID_Object->Derivative = (PID_Object->Error - PID_Object->Last_error) / PID_Object->DeltaTime;
 
   PID_Object->Output =  (PID_Object->PIDValue->KP_YAW * PID_Object->Error)\

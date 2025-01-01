@@ -81,14 +81,16 @@
 #define PID_CONTROL_VALUE_LIMIT (100)
 
 /* PITCH control limit */
-#define PITCH_CONTROL_LIMIT (20)
+#define PITCH_CONTROL_LIMIT (10)
 /* ROLL control limit */
-#define ROLL_CONTROL_LIMIT  (20)
+#define ROLL_CONTROL_LIMIT  (10)
 /* YAW CONTROL limit (Degree) */
-#define YAW_CONTROL_LIMIT   (100)
+#define YAW_CONTROL_LIMIT   (10)
 
 /* Pitch and roll degree limit */
 #define PITCH_ROLL_DEGREE_LIMIT (20)
+
+#define YAW_GAINS_VALUE (1)
 
 /* Enable yaw control */
 #define ENABLE_YAW_CONTROL

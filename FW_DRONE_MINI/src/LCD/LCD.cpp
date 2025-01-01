@@ -40,7 +40,10 @@ void LCD_Menu_IMU(float PITCH, float ROLL, float YAW)
   u8g2.setCursor(1, 32);
   u8g2.print("Yaw:");
   u8g2.setCursor(35, 32);
-  u8g2.print(YAW);    
+  u8g2.print(YAW);   
+
+  u8g2.setCursor(80, 32);
+  u8g2.print(FIRMWARE_VERSION);   
 
   u8g2.sendBuffer();  
 }
