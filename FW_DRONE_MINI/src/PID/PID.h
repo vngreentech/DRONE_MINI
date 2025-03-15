@@ -6,6 +6,10 @@
 
 typedef struct 
 {
+  float CheckSavePID;
+  float Dummy_1;
+  float Dummy_2;
+  float Dummy_3;
   float KP;
   float KI;
   float KD;

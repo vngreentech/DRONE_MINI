@@ -152,6 +152,7 @@ class U8G2
       return 0;
       #endif
     }
+   
 
     void beginSimple(void) {
       /* does not clear the display and does not wake up the display */

@@ -16,6 +16,7 @@ static uint32_t LastTimePID=0;
 
 static void EEP_SAVE_PID_Value(PID_VALUE_typedef *PIDValue);
 static void RESET_MACHINE(void);
+static void Check_Save_PID_Value(void);
 
 static void Hardware_Driver_Init(void)
 {
@@ -87,14 +88,8 @@ static void Menu_Select(void)
       PAUSE_MILLIS(200);
       Count_Menu+=1;
       
-      #if ( FIRMWARE_VERSION_CHECK == 14 || \
-            FIRMWARE_VERSION_CHECK == 17 || \
-            FIRMWARE_VERSION_CHECK == 18)
-      if(Count_Menu>6) Count_Menu=0;
-      #endif /* FIRMWARE_VERSION_CHECK */
-
-      #if (FIRMWARE_VERSION_CHECK == 15)
-      if(Count_Menu>3) Count_Menu=0;
+      #if (FIRMWARE_VERSION_CHECK == 21)
+        if(Count_Menu>6) Count_Menu=0;
       #endif /* FIRMWARE_VERSION_CHECK */
       
       STEP=0;
@@ -133,9 +128,7 @@ static void Menu_Select(void)
         LCD_Menu_PID(KD, PID_Set_Value.KD);
         break;
 
-      #if ( FIRMWARE_VERSION_CHECK == 14 || \
-            FIRMWARE_VERSION_CHECK == 17 || \
-            FIRMWARE_VERSION_CHECK == 18)
+      #if (FIRMWARE_VERSION_CHECK == 21)
         case 4: /* KP_YAW */
           PID_SET_VALUE(KP_YAW, &PID_Set_Value.KP_YAW);
           LCD_Menu_PID(KP_YAW, PID_Set_Value.KP_YAW);
@@ -161,14 +154,54 @@ static void Menu_Select(void)
 static PID_VALUE_typedef EEP_Read_PID_Value(void)
 {
   PID_VALUE_typedef ReadPID;
-  EEPROM.get(10, ReadPID);
+  EEPROM.get(0, ReadPID);
+
+  // Serial1.print("CheckSavePID: "); Serial1.print(PID_Set_Value.CheckSavePID);
+  // Serial1.print(" - KP: "); Serial1.print(PID_Set_Value.KP);
+  // Serial1.print(" - KI: "); Serial1.print(PID_Set_Value.KI);
+  // Serial1.print(" - KD: "); Serial1.print(PID_Set_Value.KD);
+  // Serial1.println();
+  // PAUSE_MILLIS(3000);
+
   return ReadPID;
+}
+
+static void Check_Save_PID_Value(void)
+{
+  if(PID_Set_Value.CheckSavePID != PID_CHECK_SAVE)
+  {
+    Motor_Stop();
+    LCD_Menu_SET_DEFAULT_PID_VALUE(1);
+
+    PID_Set_Value.CheckSavePID = PID_CHECK_SAVE;
+    PID_Set_Value.Dummy_1= (float)0xFF;
+    PID_Set_Value.Dummy_2= (float)0xFF;
+    PID_Set_Value.Dummy_3= (float)0xFF;
+
+    PID_Set_Value.KP=PID_KP_DEFAULT;
+    PID_Set_Value.KI=PID_KI_DEFAULT;
+    PID_Set_Value.KD=PID_KD_DEFAULT;
+
+    PID_Set_Value.KP_YAW=PID_KP_YAW_DEFAULT;
+    PID_Set_Value.KI_YAW=PID_KI_YAW_DEFAULT;
+    PID_Set_Value.KD_YAW=PID_KD_YAW_DEFAULT;
+
+    EEP_SAVE_PID_Value(&PID_Set_Value);
+    PAUSE_MILLIS(10);
+
+    LCD_Menu_SET_DEFAULT_PID_VALUE(2);
+
+  }
+  else 
+  {
+    /* Do nothing */
+  }
 }
 
 static void EEP_SAVE_PID_Value(PID_VALUE_typedef *PIDValue)
 {
-  EEPROM.put(10, *PIDValue);
-  PAUSE_MILLIS(1);
+  EEPROM.put(0, *PIDValue);
+  PAUSE_MILLIS(10);
 }
 
 static void RESET_MACHINE(void)
@@ -190,16 +223,24 @@ static void RESET_MACHINE(void)
     if( (uint32_t)(MILLIS-LastTimeTick)>=3000 && READ_BUTTON_SELECT==0\
         && READ_BUTTON_PLUS==0 && READ_BUTTON_MINUS==0)
     {
+      Motor_Stop();
       LCD_Menu_RESET();
       
-      PID_Set_Value.KP=0.2;
-      PID_Set_Value.KI=0.05;
-      PID_Set_Value.KD=0.1;
-      PID_Set_Value.KP_YAW=0.5;
-      PID_Set_Value.KI_YAW=0.05;
-      PID_Set_Value.KD_YAW=0.1;
+      PID_Set_Value.CheckSavePID = PID_CHECK_SAVE;
+      PID_Set_Value.Dummy_1= (float)0xFF;
+      PID_Set_Value.Dummy_2= (float)0xFF;
+      PID_Set_Value.Dummy_3= (float)0xFF;
+
+      PID_Set_Value.KP=PID_KP_DEFAULT;
+      PID_Set_Value.KI=PID_KI_DEFAULT;
+      PID_Set_Value.KD=PID_KD_DEFAULT;
+
+      PID_Set_Value.KP_YAW=PID_KP_YAW_DEFAULT;
+      PID_Set_Value.KI_YAW=PID_KI_YAW_DEFAULT;
+      PID_Set_Value.KD_YAW=PID_KD_YAW_DEFAULT;
+
       EEP_SAVE_PID_Value(&PID_Set_Value);  
-      PAUSE_MILLIS(3000);
+      PAUSE_MILLIS(1000);
 
       NVIC_SystemReset();
     }
@@ -207,7 +248,8 @@ static void RESET_MACHINE(void)
     if( READ_BUTTON_SELECT==1 && READ_BUTTON_PLUS==1 \
         && READ_BUTTON_MINUS==1 )
     {
-      STEP=0; LastTimeTick=0;
+      STEP=0; 
+      LastTimeTick=0;
     }
 
   }
@@ -219,61 +261,25 @@ static void PID_MOTOR_CONTROL(void)
   static float PITCH_CONTROL = 0;
   static float ROLL_CONTROL = 0;
   static float YAW_CONTROL = 0;
-  static int8_t Read_CH4=0;
+  static int16_t Read_CH4=0;
   
   PITCH_PID.ReadValue = Read_IMU.Pitch;
-
   ROLL_PID.ReadValue = Read_IMU.Roll;
-
-  #if ( FIRMWARE_VERSION_CHECK == 14 || \
-        FIRMWARE_VERSION_CHECK == 17 || \
-        FIRMWARE_VERSION_CHECK == 18)
   YAW_PID.ReadValue = Read_IMU.Yaw;
-  #endif /* FIRMWARE_VERSION_CHECK */
+
+  PITCH_CONTROL = map(Read_Channel.CH2,ZERO,CHANNEL_2_MAX, PITCH_CONTROL_LIMIT, -PITCH_CONTROL_LIMIT);
+  ROLL_CONTROL = map(Read_Channel.CH1,ZERO,CHANNEL_1_MAX, ROLL_CONTROL_LIMIT, -ROLL_CONTROL_LIMIT);
+  YAW_CONTROL = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);  
 
   if( (uint32_t)(MILLIS-LastTimePID) >= TimeCalPID )
   {
-    PITCH_CONTROL = map(Read_Channel.CH2,ZERO,CHANNEL_2_MAX, PITCH_CONTROL_LIMIT, -PITCH_CONTROL_LIMIT);
-    ROLL_CONTROL = map(Read_Channel.CH1,ZERO,CHANNEL_1_MAX, ROLL_CONTROL_LIMIT, -ROLL_CONTROL_LIMIT);
     
-    #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17)
-    YAW_PID.SetValue += map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
-    #endif /* FIRMWARE_VERSION_CHECK */
-
-    #if (FIRMWARE_VERSION_CHECK == 15)
-    YAW_CONTROL = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
-    #endif /* FIRMWARE_VERSION_CHECK */
-
-    #if (FIRMWARE_VERSION_CHECK == 16)
-    YAW_PID.SetValue += map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
-    if(YAW_PID.SetValue>=360) YAW_PID.SetValue = 360;
-    else if(YAW_PID.SetValue<=-360) YAW_PID.SetValue = -360;
-    #endif /* FIRMWARE_VERSION_CHECK */
-
-    #if (FIRMWARE_VERSION_CHECK == 18) 
-    Read_CH4 = map(Read_Channel.CH4,ZERO,CHANNEL_4_MAX, YAW_CONTROL_LIMIT, -YAW_CONTROL_LIMIT);
-    if( (Read_CH4>=2) ) YAW_PID.SetValue += 1;
-    else if( (Read_CH4<=-2) ) YAW_PID.SetValue -= 1;
-
-    if(YAW_PID.SetValue > 180) YAW_PID.SetValue -= 360;
-    else if(YAW_PID.SetValue < -180) YAW_PID.SetValue += 360;
-    #endif /* FIRMWARE_VERSION_CHECK */   
-
     PID_CALCULATOR(&PITCH_PID);
     PITCH_PID.Output = constrain(PITCH_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
 
     PID_CALCULATOR(&ROLL_PID);
     ROLL_PID.Output = constrain(ROLL_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
     
-    #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17 || \
-          FIRMWARE_VERSION_CHECK == 18)
-    PID_CAL_YAW(&YAW_PID);
-    YAW_PID.Output = constrain(YAW_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
-    YAW_PID.Output = -YAW_PID.Output;
-    #endif /* FIRMWARE_VERSION_CHECK */
-
     /*PITCH control: OK*/
     // Speed_Motor.Motor_1 = round(Read_Channel.CH3 + PITCH_PID.Output);
     // Speed_Motor.Motor_2 = round(Read_Channel.CH3 + PITCH_PID.Output);
@@ -296,26 +302,32 @@ static void PID_MOTOR_CONTROL(void)
     Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 - ROLL_CONTROL + PITCH_CONTROL);
     Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 + ROLL_CONTROL + PITCH_CONTROL);
     Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + ROLL_CONTROL - PITCH_CONTROL);
-    Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - ROLL_CONTROL - PITCH_CONTROL);    
+    Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - ROLL_CONTROL - PITCH_CONTROL);           
 
-    /* PITCH + ROLL + YAW */
-    #ifdef ENABLE_YAW_CONTROL
-      #if ( FIRMWARE_VERSION_CHECK == 14 || \
-            FIRMWARE_VERSION_CHECK == 17 || \
-            FIRMWARE_VERSION_CHECK == 18)
-      Speed_Motor.Motor_1 = round( Speed_Motor.Motor_1 + (YAW_PID.Output * YAW_GAINS_VALUE) );
-      Speed_Motor.Motor_2 = round( Speed_Motor.Motor_2 - (YAW_PID.Output * YAW_GAINS_VALUE) );
-      Speed_Motor.Motor_3 = round( Speed_Motor.Motor_3 + (YAW_PID.Output * YAW_GAINS_VALUE) );
-      Speed_Motor.Motor_4 = round( Speed_Motor.Motor_4 - (YAW_PID.Output * YAW_GAINS_VALUE) );        
-      #endif /* FIRMWARE_VERSION_CHECK */  
+    #if (FIRMWARE_VERSION_CHECK == 21)
+      if( YAW_CONTROL>=2 || YAW_CONTROL<=-2 ) /* Have control */
+      {
+        YAW_PID.SetValue = YAW_PID.ReadValue;
 
-      #if (FIRMWARE_VERSION_CHECK == 15)
-      Speed_Motor.Motor_1 = round(Speed_Motor.Motor_1 + YAW_CONTROL);
-      Speed_Motor.Motor_2 = round(Speed_Motor.Motor_2 - YAW_CONTROL);
-      Speed_Motor.Motor_3 = round(Speed_Motor.Motor_3 + YAW_CONTROL);
-      Speed_Motor.Motor_4 = round(Speed_Motor.Motor_4 - YAW_CONTROL);  
-      #endif /* FIRMWARE_VERSION_CHECK */      
-    #endif /* ENABLE_YAW_CONTROL */    
+        /* YAW moment controller */
+        Speed_Motor.Motor_1 = round( Speed_Motor.Motor_1 + YAW_CONTROL );
+        Speed_Motor.Motor_2 = round( Speed_Motor.Motor_2 - YAW_CONTROL );
+        Speed_Motor.Motor_3 = round( Speed_Motor.Motor_3 + YAW_CONTROL );
+        Speed_Motor.Motor_4 = round( Speed_Motor.Motor_4 - YAW_CONTROL );              
+      }
+      else /* No control */
+      {
+        PID_CAL_YAW(&YAW_PID);
+        YAW_PID.Output = constrain(YAW_PID.Output, -PID_CONTROL_VALUE_LIMIT, PID_CONTROL_VALUE_LIMIT);
+        YAW_PID.Output = -YAW_PID.Output;
+
+        /* YAW PID controller */
+        Speed_Motor.Motor_1 = round( Speed_Motor.Motor_1 + (YAW_PID.Output * YAW_GAINS_VALUE) );
+        Speed_Motor.Motor_2 = round( Speed_Motor.Motor_2 - (YAW_PID.Output * YAW_GAINS_VALUE) );
+        Speed_Motor.Motor_3 = round( Speed_Motor.Motor_3 + (YAW_PID.Output * YAW_GAINS_VALUE) );
+        Speed_Motor.Motor_4 = round( Speed_Motor.Motor_4 - (YAW_PID.Output * YAW_GAINS_VALUE) );              
+      }
+    #endif /* FIRMWARE_VERSION_CHECK */      
     
     Speed_Motor.Motor_1 = constrain(Speed_Motor.Motor_1,ZERO,SERVO_MAX);
     Speed_Motor.Motor_2 = constrain(Speed_Motor.Motor_2,ZERO,SERVO_MAX);
@@ -324,29 +336,25 @@ static void PID_MOTOR_CONTROL(void)
 
     if(Read_Channel.CH3<=10)
     {
-      Speed_Motor.Motor_1 = 0;
-      Speed_Motor.Motor_2 = 0;
-      Speed_Motor.Motor_3 = 0;
-      Speed_Motor.Motor_4 = 0;
+      Speed_Motor.Motor_1 = ZERO;
+      Speed_Motor.Motor_2 = ZERO;
+      Speed_Motor.Motor_3 = ZERO;
+      Speed_Motor.Motor_4 = ZERO;
     }
     
     #ifndef STOP_FOR_TEST
-    Motor_Control(MOTOR_1, Speed_Motor.Motor_1);
-    Motor_Control(MOTOR_2, Speed_Motor.Motor_2);
-    Motor_Control(MOTOR_3, Speed_Motor.Motor_3);
-    Motor_Control(MOTOR_4, Speed_Motor.Motor_4);
+      Motor_Control(MOTOR_1, Speed_Motor.Motor_1);
+      Motor_Control(MOTOR_2, Speed_Motor.Motor_2);
+      Motor_Control(MOTOR_3, Speed_Motor.Motor_3);
+      Motor_Control(MOTOR_4, Speed_Motor.Motor_4);
     #endif /*STOP_FOR_TEST*/
 
     PITCH_PID.LastTimeCalPID=MILLIS;
     ROLL_PID.LastTimeCalPID=MILLIS;
-
-    #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17 || \
-          FIRMWARE_VERSION_CHECK == 18)
     YAW_PID.LastTimeCalPID=MILLIS;
-    #endif /* FIRMWARE_VERSION_CHECK */
 
     LastTimePID = MILLIS;
+    
   }
 
   // Serial1.print("ReadCH4: "); Serial1.print(Read_CH4);
@@ -362,12 +370,7 @@ static void Check_Reset_PID(void)
     Motor_Stop();
     PID_RESET_DATA(&PITCH_PID);
     PID_RESET_DATA(&ROLL_PID);
-
-    #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17 || \
-          FIRMWARE_VERSION_CHECK == 18)
     PID_RESET_DATA(&YAW_PID);
-    #endif /* FIRMWARE_VERSION_CHECK */
   }
 }
 
@@ -384,19 +387,15 @@ void APP_INIT(void)
 
   /*LCD init*/
   LCD_Init();
-  LCD_Menu_Main();
 
   /*IMU init*/
   setupMPU();
 
-  PID_Set_Value=EEP_Read_PID_Value();
-  // PID_Set_Value.KP=0.2;
-  // PID_Set_Value.KI=0.1;
-  // PID_Set_Value.KD=0.16;
-  // PID_Set_Value.KP_YAW=0.5;
-  // PID_Set_Value.KI_YAW=0.05;
-  // PID_Set_Value.KD_YAW=0.1;  
-  // EEP_SAVE_PID_Value(&PID_Set_Value);
+  /*Read PID set value*/
+  PID_Set_Value = EEP_Read_PID_Value();
+
+  /*Check save default value*/
+  Check_Save_PID_Value();
 
   PITCH_PID.SetValue=0.0;
   PITCH_PID.PIDValue=&PID_Set_Value;
@@ -404,12 +403,8 @@ void APP_INIT(void)
   ROLL_PID.SetValue=0.0;
   ROLL_PID.PIDValue=&PID_Set_Value;
 
-  #if ( FIRMWARE_VERSION_CHECK == 14 || \
-        FIRMWARE_VERSION_CHECK == 17 || \
-        FIRMWARE_VERSION_CHECK == 18)
   YAW_PID.SetValue=0.0;
   YAW_PID.PIDValue=&PID_Set_Value;
-  #endif /* FIRMWARE_VERSION_CHECK */
 
   LastTimeLCD=MILLIS;
   LastTimePID=MILLIS;
@@ -429,12 +424,7 @@ void APP_MAIN(void)
     Motor_Stop();
     PID_RESET_DATA(&PITCH_PID);
     PID_RESET_DATA(&ROLL_PID);
-
-    #if ( FIRMWARE_VERSION_CHECK == 14 || \
-          FIRMWARE_VERSION_CHECK == 17 || \
-          FIRMWARE_VERSION_CHECK == 18)
     PID_RESET_DATA(&YAW_PID);
-    #endif /* FIRMWARE_VERSION_CHECK */
   }
   else 
   {

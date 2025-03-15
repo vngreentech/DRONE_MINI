@@ -8,6 +8,95 @@
 
   /***********************************************
    * Project: Drone Mini    
+   * Version: DMV.2.1
+   * Date: 15,Mar,2025
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Add feature: check save default PID value 
+   * Update version check
+   * Update somes API
+   * Release new version to customer
+   * 
+   * - Fix ERR: 
+   * 
+  ************************************************/
+ #ifndef FIRMWARE_VERSION
+ #define FIRMWARE_VERSION            ("DMV.2.1")
+ #endif /* FIRMWARE_VERSION */
+ #ifndef FIRMWARE_VERSION_CHECK
+ #define FIRMWARE_VERSION_CHECK      (21)
+ #endif /* FIRMWARE_VERSION_CHECK */  
+ #ifndef RELEASES_DATE
+ #define RELEASES_DATE               ("15,Mar,2025")
+ #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
+   * Version: DMV.2.0
+   * Date: 8,Feb,2025
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Update: PID controller
+   * keep PID for balance
+   * Test with PITCH + ROLL + YAW
+   * 
+   * - Fix ERR: 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION            ("DMV.2.0")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef FIRMWARE_VERSION_CHECK
+  #define FIRMWARE_VERSION_CHECK      (20)
+  #endif /* FIRMWARE_VERSION_CHECK */  
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE               ("8,Feb,2025")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
+   * Version: DMV.1.9
+   * Date: 1,Jan,2025
+   * Dev: NhanNguyen
+   * HW-TX: V24OL, Flysky I6
+   * HW-RX: V24.2, Flysky IA6B
+   * Drone-HW: UAV MINI
+   * Drone-HW-MCU: STM32F401CCU6
+   * Debug tool: JLINK-SEGGER
+   * 
+   * *** Decription ***
+   * Yaw always use PID controller
+   * Update: method control yaw use moment from motor
+   * but still keep PID for balance
+   * Test with PITCH + ROLL + YAW
+   * 
+   * - Fix ERR: 
+   * 
+  ************************************************/
+  #ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION            ("DMV.1.9")
+  #endif /* FIRMWARE_VERSION */
+  #ifndef FIRMWARE_VERSION_CHECK
+  #define FIRMWARE_VERSION_CHECK      (19)
+  #endif /* FIRMWARE_VERSION_CHECK */  
+  #ifndef RELEASES_DATE
+  #define RELEASES_DATE               ("1,Jan,2025")
+  #endif /* RELEASES_DATE */
+
+  /***********************************************
+   * Project: Drone Mini    
    * Version: DMV.1.8
    * Date: 1,Jan,2025
    * Dev: NhanNguyen
